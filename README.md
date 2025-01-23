@@ -6,10 +6,13 @@
 This simulation works by implementing **gwf**, a tool for building workflows and automating pipelines.  
 To install [gwf](https://gwf.app/), use **conda** as described in the official documentation:
 
+---
+
 ```bash
 conda install -c conda-forge gwf or
 conda install gwf
 
+---
 ## 2. **Code Overview**
 
 This repository contains the following scripts:
