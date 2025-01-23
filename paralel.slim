@@ -1,0 +1,169 @@
+function (+)readMatrix(s$ path, [string$ sep = ","])
+{
+	if (!fileExists(path))
+		stop("readMatrix(): File not found at path " + path);
+	df = readCSV(path, colNames=F, sep=sep);
+	m = df.asMatrix();
+	return m;
+}
+
+initialize() {
+
+	defineConstant("L", 1000000);           // chromosome length
+	defineConstant("msatCount", asInteger(str_count));    // number of microsats
+	defineConstant("msatMu",  asFloat(mutation_rate));   // mutation rate per microsat
+	defineConstant("msatUnique", T);    // T = unique msats, F = lineages
+
+	initializeTreeSeq();
+	initializeMutationRate(1.2e-8);
+	initializeRecombinationRate(1e-8);
+	initializeMutationType("m1", 0.5, "f", 0.0);  
+	initializeGenomicElementType("g1", m1, 1.0); 
+	initializeGenomicElement(g1, 0, L-1);
+
+    	
+
+	
+	initializeMutationType("m2", 0.5, "f", 0.0); // microsatellite mutation type; 
+	m2.convertToSubstitution = F;
+	m2.color = "#900090";
+
+}
+
+1 late() {
+	// if no input tree sequence is provided, then start a subpopulation
+	if (infile == ' ') {
+		p = sim.addSubpop("p1", popsize);
+		genomes = sim.subpopulations.genomes;
+		positions = rdunif(msatCount, 0, L-1);
+		repeats= rpois(msatCount, 20)+5;
+
+		lo=asString(min(repeats));
+		hi=asString(max(repeats));
+		
+		///Create the transition matrix based on the number of possible allelic states
+		system("python3 /home/luigf/rohlfslab/great_apes_str_simulations/metadata/transitionMatrixMSprimeMethod.py  ",args=c(hi,lo,folder));
+		defineConstant("M", readMatrix(folder +'/transition_matrix.csv', sep=","));
+		defineConstant("ancestral_alleles", readMatrix(folder + '/ancestral_alleles.csv', sep=","));
+      ///create microsat at random positions in the genome
+      
+		for (msatIndex in 0:(msatCount-1))
+		{
+			pos = positions[msatIndex];
+			mut = genomes.addNewDrawnMutation(m2, pos);
+			mut.tag = repeats[msatIndex];
+		}
+
+		defineConstant("msatPositions", positions);	
+				
+	} 
+	p.name = popname;
+	// schedule the end of the simulation
+	finaltick = num_gens + community.tick;
+	community.rescheduleScriptBlock(s0, ticks=finaltick);
+}
+
+modifyChild() {
+	// mutate microsatellites with rate msatMu
+	for (genome in child.genomes)
+	{
+		mutCount = rpois(1, msatMu * msatCount);
+		
+		if (mutCount)
+		{
+			mutSites = sample(msatPositions, mutCount);
+			
+			msats = genome.mutationsOfType(m2);
+			
+			for (mutSite in mutSites)
+			{
+				msat = msats[msats.position == mutSite];
+				
+				index=findInterval(msat.tag,ancestral_alleles);
+				probabilities=M[index,];
+				new_repeat=sample(ancestral_alleles,1,weights=probabilities);	
+		
+				
+				steps=abs(msat.tag-new_repeat);
+			
+				///assign the increase or decrease
+				if (steps==0)
+						repeats=msat.tag;
+				else
+						repeats=ifelse(msat.tag > new_repeat,msat.tag -steps,msat.tag +steps);
+				
+				//the minimum size to be consider as a microsatellite is of at least 3 repeat units.
+				if (repeats < 3)
+					next;
+				
+				// if we're uniquing microsats, do so now
+				if (msatUnique)
+				{
+					all_msats = sim.mutationsOfType(m2);
+					msatsAtSite = all_msats[all_msats.position == mutSite];
+					matchingMut = msatsAtSite[msatsAtSite.tag == repeats];
+					
+					if (matchingMut.size() == 1)
+					{
+						genome.removeMutations(msat);
+						genome.addMutations(matchingMut);
+						next;
+					}
+				}
+				
+				// make a new mutation with the new repeat count
+				genome.removeMutations(msat);
+				msat = genome.addNewDrawnMutation(m2, mutSite);
+				msat.tag = repeats;
+			}
+		}
+	}
+	
+	return T;
+}
+
+
+s0 5 late() {
+
+	//Save the tree sequence and metadata information associated to the tree sequence
+	all_msats = sim.mutationsOfType(m2);
+	metadataDict = Dictionary("tags", all_msats.tag, "ids", all_msats.id);
+	sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);
+	sim.treeSeqOutput(outfile,metadata=metadataDict);
+	
+	// print and save in spearate files the frequency information for each microsatellite site
+	lines = NULL;
+	full=NULL;
+	for (pos in sort(msatPositions))
+	{
+		catn("Microsatellite at " + pos + ":");
+		
+		msatsAtPos = all_msats[all_msats.position == pos];
+		
+		full=c(full,msatsAtPos);
+		
+		for (msat in sortBy(msatsAtPos, "tag"))
+			catn(msat.id +"  variant with " + msat.tag + " repeats: " +
+			sim.mutationFrequencies(NULL, msat));		
+	
+	}
+	for (mut in full){
+		mutLine = paste0(mut.tag, ", ", mut.id,",", mut.position,"\n");
+		lines = c(lines, mutLine);
+	}
+
+	species=sim.subpopulations;
+	sample_last=sample(species[0].individuals,100).genomes;
+	
+	sample_last.outputVCF(folder + '/microsats_' + popname +'.vcf');
+	file = paste0(lines);
+	
+	//save the id, the repeat size and the position to match later with vcf file
+	file = "Repeat, id, position\n" + file;
+	writeFile( folder + '/microsats_'+ popname + '.txt', file);
+
+}
+
+	
+	
+
