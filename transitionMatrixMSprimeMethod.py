@@ -55,6 +55,7 @@ ancestral_alleles= np.arange(lo,hi+1,1)
 ##print (ancestral_alleles)
 rate_matrix = np.zeros((num_alleles, num_alleles))
 mutation=np.zeros((num_alleles, num_alleles))
+##Parameter to simulate a stepwise mutation model
 s=0
 u=0.5
 v=0
