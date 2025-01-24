@@ -42,6 +42,7 @@ initialize() {
 		hi=asString(max(repeats));
 		
 		///Create the transition matrix based on the number of possible allelic states
+		///CHANGE the file LOCATION where you store the PYTHON script
 		system("python3 /home/luigf/rohlfslab/great_apes_str_simulations/metadata/transitionMatrixMSprimeMethod.py  ",args=c(hi,lo,folder));
 		defineConstant("M", readMatrix(folder +'/transition_matrix.csv', sep=","));
 		defineConstant("ancestral_alleles", readMatrix(folder + '/ancestral_alleles.csv', sep=","));
