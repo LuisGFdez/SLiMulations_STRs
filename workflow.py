@@ -41,6 +41,7 @@ for mutation in [1e-2,1e-3,1e-4,1e-5]:
         f = open(file, "w")
         print(f"all:{mutation}_{STR}.trees\n", file=f)
         print(f"{mutation}_{STR}.trees:  paralel.slim", file=f)
+        ##ONLY CHANGE the location where SLiM is stored
         print(f"\t~/.conda/envs/simulations/bin/slim -d \"infile=' '\" -d popsize={popsize} "
                 f"-d \"popname=\'{popname}\'\" "
                 f"-d num_gens={num_gens} " f"-d mutation_rate={mutation} " f"-d str_count={STR} " f"-d \"folder='{mutation}_{STR}'\" "  f"-d \"outfile='{mutation}_{STR}/{mutation}_{STR}.trees'\" "  
