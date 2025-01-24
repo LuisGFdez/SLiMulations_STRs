@@ -9,6 +9,7 @@ gwf = Workflow()
 def simulate(input,output):
     inputs = []
     outputs = [output]
+    ##CHANGE the option bracket according to your cluster requirements
     options = {
     	'cores': 1,
         'memory': '60g',
