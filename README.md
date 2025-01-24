@@ -6,12 +6,19 @@
 This simulation works by implementing **gwf**, a tool for building workflows and automating pipelines.  
 To install [gwf](https://gwf.app/), use **conda** as described in the official documentation:
 
-
 ```bash
 conda install -c conda-forge gwf or
 conda install gwf
 ```
-Once installed, within the **Workflow.py** script, the  **simulate** function must be modified to adjust the **option** parameters according to the requirements of the cluster you are using, either **SGE** or **SLURM**.
+After installed, if you’re running gwf on a cluster you may want to use a backend that can submit targets to your clusters’ queueing system, run the command:
+
+```bash
+gwf config set backend slurm
+gwf config set backend sge
+
+```
+
+Once configured, within the **Workflow.py** script, the  **simulate** function must be modified to adjust the **option** parameters according to the requirements of the cluster you are using, either **SGE** or **SLURM**.
 Detailed information  configuring the option parameters based on the cluster type can be found here: [GWF Backends](https://gwf.app/reference/backends/)
 
 ## 2. **Code Overview**
@@ -33,9 +40,7 @@ This repository contains the following scripts:
   
 ## 2. **How to run the simulations**
 
-Once the gwf is installed and set its specific configuration.
-
-run the following commands:
+Once gwf is installed and configured with its specific settings, run the following commands:
 
 ```bash
 gwf status
