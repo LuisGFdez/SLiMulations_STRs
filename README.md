@@ -21,6 +21,7 @@ gwf config set backend sge
 Once configured, within the **Workflow.py** script, the  **simulate** function must be modified to adjust the **option** parameters according to the requirements of the cluster you are using, either **SGE** or **SLURM**.
 Detailed information  configuring the option parameters based on the cluster type can be found here: [GWF Backends](https://gwf.app/reference/backends/)
 
+Install [SLiM](https://messerlab.org/slim/) in the cluster or in your local machine
 ## 2. **Code Overview**
 
 This repository contains the following scripts:
