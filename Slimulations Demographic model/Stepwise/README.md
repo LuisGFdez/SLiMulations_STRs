@@ -36,6 +36,11 @@ inference to recover the mutation rate from the simulated data.
 
 `workflow.py` expects a tab-separated metadata table (edge, parent, population size `N`, generations `gens`) describing the demographic tree — one row per population, with a `parent` column linking each population to the one it split from.
 
+### `metadata/`
+
+- **`edges_meta.tsv`** — the demographic tree metadata table described above, used directly by `workflow.py`.
+- **`transitionMatrixMSprimeMethod.py`** — builds the microsatellite transition matrix (`transition_matrix.csv`) that `paralel.slim` reads each generation to draw new repeat counts. This is the same script as the one at the repo root; it's duplicated here since this pipeline currently calls it from a fixed cluster path rather than a path relative to this folder.
+
 ## 4. Running
 
 ```bash
